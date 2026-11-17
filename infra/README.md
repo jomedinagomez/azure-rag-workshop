@@ -22,7 +22,9 @@ authentication; anonymous blob access must remain disabled.
 The Classic cluster has one driver and one worker, CPU-only, on-demand nodes,
 and 20-minute idle termination. Verify node availability and select a Python
 3.12 LTS runtime using the actual workspace APIs. No schedule is configured.
-`SecurityControl=Ignore` is included in workspace and compute tags.
+`SecurityControl=Ignore` is set on the workspace and inherited by compute.
+Do not duplicate inherited tag keys in cluster custom tags: Databricks renames
+colliding keys, causing repeated Terraform differences.
 
 ## 1. Bootstrap state storage
 

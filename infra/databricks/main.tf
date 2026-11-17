@@ -57,10 +57,6 @@ resource "databricks_cluster" "workshop" {
   runtime_engine          = "STANDARD"
   autotermination_minutes = 20
   spark_env_vars          = var.notebook_environment
-  custom_tags = {
-    project         = "rag-workshop"
-    SecurityControl = "Ignore"
-  }
   azure_attributes {
     availability = "ON_DEMAND_AZURE"
   }
