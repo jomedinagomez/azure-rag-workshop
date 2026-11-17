@@ -150,8 +150,8 @@ resource "databricks_job" "workshop" {
 }
 
 resource "databricks_permissions" "jobs" {
-  for_each = databricks_job.workshop
-  job_id   = each.value.id
+  for_each = local.flows
+  job_id   = databricks_job.workshop[each.key].id
   access_control {
     user_name        = data.databricks_current_user.instructor.user_name
     permission_level = "IS_OWNER"
