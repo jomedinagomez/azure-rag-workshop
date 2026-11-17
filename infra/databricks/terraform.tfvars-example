@@ -1,6 +1,7 @@
 workspace_url         = "https://<workspace-host>"
 workspace_resource_id = "<azure-databricks-resource-id>"
 tenant_id             = "<entra-tenant-id>"
+databricks_account_id = "<databricks-account-uuid>"
 notebook_client_id    = "<entra-application-client-id>"
 runtime_version       = "<verified-python-3.12-lts-runtime-id>"
 repository_commit     = "<reviewed-git-commit>"

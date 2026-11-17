@@ -10,6 +10,11 @@ variable "tenant_id" {
   type = string
 }
 
+variable "databricks_account_id" {
+  description = "Databricks account UUID, not the Azure tenant, subscription or numeric workspace ID."
+  type        = string
+}
+
 variable "notebook_client_id" {
   type = string
 }

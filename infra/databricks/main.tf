@@ -24,6 +24,19 @@ resource "databricks_service_principal" "notebooks" {
   workspace_access = true
 }
 
+resource "databricks_access_control_rule_set" "notebook_run_as" {
+  name = "accounts/${var.databricks_account_id}/servicePrincipals/${databricks_service_principal.notebooks.application_id}/ruleSets/default"
+
+  grant_rules {
+    principals = ["users/${data.databricks_current_user.instructor.user_name}"]
+    role       = "roles/servicePrincipal.manager"
+  }
+  grant_rules {
+    principals = ["users/${data.databricks_current_user.instructor.user_name}"]
+    role       = "roles/servicePrincipal.user"
+  }
+}
+
 resource "databricks_secret_scope" "notebooks" {
   name = "rag-workshop"
 }
@@ -129,7 +142,11 @@ resource "databricks_job" "workshop" {
       }
     }
   }
-  depends_on = [databricks_secret_acl.notebooks, databricks_permissions.compute]
+  depends_on = [
+    databricks_secret_acl.notebooks,
+    databricks_permissions.compute,
+    databricks_access_control_rule_set.notebook_run_as,
+  ]
 }
 
 resource "databricks_permissions" "jobs" {

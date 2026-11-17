@@ -111,6 +111,7 @@ Copy-Item terraform.tfvars-example terraform.tfvars
 Copy-Item backend.hcl-example backend.hcl
 # Set actual workspace IDs, verified runtime, reviewed public commit,
 # nonsecret model/endpoints/output roots, and the default ADLS claim folder.
+# Set databricks_account_id from the Azure Databricks account console.
 terraform init '-backend-config=backend.hcl'
 terraform fmt -check
 terraform validate
@@ -129,6 +130,14 @@ secret scope, and trigger/manage runs. Jobs have a fixed service-principal
 **Run as** identity and are pinned to the reviewed Git commit. The Azure SP
 used inside notebooks is the same dedicated identity. No GitHub credential
 is created: the Git source is public.
+
+The instructor also needs Databricks **Service Principal User** on this
+dedicated principal to set the jobs' Run as identity. Being its creator or
+Service Principal Manager does not imply that permission. The rule-set
+resource retains the creator's Manager role and adds User on this principal
+only. This requires the Databricks account UUID, not an Azure directory or
+subscription ID. Rule sets are authoritative: inspect existing grants before
+applying if reusing a principal that other people already manage.
 
 ## 4. Data, secrets, and native rehearsals
 
