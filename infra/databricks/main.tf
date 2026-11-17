@@ -55,7 +55,7 @@ resource "databricks_cluster" "workshop" {
   data_security_mode      = "USER_ISOLATION"
   runtime_engine          = "STANDARD"
   autotermination_minutes = 20
-  spark_env_vars          = var.notebook_environment
+  spark_env_vars          = merge(var.notebook_environment, { CLAIM_FOLDER = var.default_claim_folder })
   azure_attributes {
     availability = "ON_DEMAND_AZURE"
   }
@@ -122,12 +122,25 @@ resource "databricks_job" "workshop" {
     }
   }
   task {
+    task_key            = "create_index"
+    existing_cluster_id = databricks_cluster.workshop.id
+    max_retries         = 0
+    timeout_seconds     = 1200
+    depends_on {
+      task_key = "extract"
+    }
+    notebook_task {
+      notebook_path = "demo/rag/notebooks/databricks-runtime/${each.key}/02_create_index.ipynb"
+      source        = "GIT"
+    }
+  }
+  task {
     task_key            = "load"
     existing_cluster_id = databricks_cluster.workshop.id
     max_retries         = 0
     timeout_seconds     = 900
     depends_on {
-      task_key = "extract"
+      task_key = "create_index"
     }
     notebook_task {
       notebook_path = "demo/rag/notebooks/databricks-runtime/${each.key}/03_populate_index.ipynb"

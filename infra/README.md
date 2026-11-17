@@ -191,17 +191,18 @@ secret values. Review the script before using it:
 .\scripts\Invoke-DatabricksRehearsal.ps1
 ```
 
-By default it runs notebook 2 once for each new CU/DI index, then the saved
-CU/DI jobs for claim-001 as the instructor caller and claim-003 as the
+It runs the saved CU/DI jobs for claim-001 as the instructor caller and claim-003 as the
 principal caller. All saved jobs keep the same SP Run as identity.
 The default credential expires in seven days; rotate it before later use.
 Only nonsecret credential metadata and run reports are written under ignored
 `output\deployment\runs`.
 
-Index creation is intentionally not an upsert. If both indexes already exist
-with the intended schema, use `-SkipIndexSetup`; do not delete existing
-indexes to make setup pass. Remove the setup-only Search role after creation.
-Recurring jobs run **notebook 1 -> notebook 3**, never notebook 2.
+Every job runs **notebook 1 -> notebook 2 -> notebook 3**. Notebook 1 clears its
+generated claim outputs and calls the models again; notebook 2 deletes and
+recreates the configured demo index; notebook 3 resets and loads that index.
+All previous documents in the configured index are removed, including other
+claims. Keep Search Service Contributor assigned during the workshop; index
+reset is part of every run, not a one-time setup step.
 
 Native acceptance includes full durable ADLS outputs, 3072-dimensional vectors,
 exact prepared/indexed ID equality per selected claim, visual/PDF provenance,

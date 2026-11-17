@@ -11,11 +11,11 @@ It also creates private input/output containers and narrowly scoped roles:
 - Search Index Data Contributor on Search.
 - Storage Blob Data Reader on the input container.
 - Storage Blob Data Contributor on the output container.
-- Optional setup-only Search Service Contributor for creating the indexes.
+- Search Service Contributor for resetting and recreating the demo indexes.
 
-After both indexes exist, set `enable_index_setup_role = false`, review the
-plan, and apply the removal of that role assignment only. Retain the ongoing
-data-plane permissions.
+Leave `enable_index_setup_role` enabled for this experimental workshop. Both
+index creation and loading reset the configured demo index on every run, so
+schema-management permission is required throughout the session.
 
 The workspace UI/API is public. Compute requests no public node IPs; that
 does not make the workspace private. No private endpoints, private DNS,

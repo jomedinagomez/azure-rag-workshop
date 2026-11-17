@@ -81,16 +81,20 @@ Calls use the same OpenAI endpoint and Entra credential as embeddings. CU is
 never called from the DI notebooks, and native DI output is not presented as
 if it included visual interpretation.
 
-Full GPT responses, descriptions, and DI crops are saved for inspection and
-reuse. Compare coverage with CU on representative evidence; matching the
+Full GPT responses, descriptions, and DI crops are saved for inspection.
+Every extraction-notebook run makes fresh extraction, vision, and embedding
+calls; previous results are never reused to skip work. Compare coverage with CU on representative evidence; matching the
 workflow does not guarantee identical descriptions or accuracy. Only figures
 detected by DI receive crops, so review their coverage against the PDF. Neither
 service's visual description is a finding of cause, timing, liability, or coverage.
 
 CU uses `CU_OUTPUT_ROOT` and `AZURE_SEARCH_CU_INDEX_NAME`; DI uses
 `DI_OUTPUT_ROOT` and `AZURE_SEARCH_DI_INDEX_NAME`. Outputs and indexes never
-depend on a service-selection flag. The index-creation cell runs once for a
-new name; an existing index produces the SDK's error, not an overwrite.
+depend on a service-selection flag. These are clean initial-load demos:
+notebook 1 clears its generated claim outputs, notebook 2 deletes and recreates
+the configured index, and notebook 3 resets that index before loading every
+prepared record. Existing documents in that index are intentionally removed.
+Use dedicated demo indexes. Original inputs and unrelated indexes are untouched.
 
 Supported inputs match the source walkthrough: PDF, JPG/JPEG, PNG, and Outlook
 MSG with nested MSG/PDF/image attachments. Unsupported loose files are reported
@@ -193,6 +197,9 @@ thrown by the SDK.
    names, dimensions, and secret-scope name. Cluster-supplied values are preserved.
    Match settings across the three notebooks. Notebooks 1 and 3 expose one
    `CLAIM_FOLDER` widget, also used by Jobs to select a claim.
+   For an interactive run, set that widget to the actual input folder before
+   **Run all**. `CU_OUTPUT_ROOT` / `DI_OUTPUT_ROOT` configure outputs only;
+   they do not supply `CLAIM_FOLDER`. Widget values persist between runs.
    The bootstrap cell reads the service principal from the secret
    scope into the Azure environment variables for `DefaultAzureCredential`.
    Credentials are not stored in the notebook.
@@ -225,7 +232,8 @@ DI_OUTPUT_ROOT=abfss://<filesystem>@<account>.dfs.core.windows.net/rag-output/di
 ```
 
 The Azure Data Lake SDK uses the selected Entra credential, not Spark/DBFS.
-Input files and prior output caches are staged to a temporary driver folder.
+Input files are staged to a temporary driver folder; previous outputs are not
+downloaded or reused by the extraction notebooks.
 Raw extraction results, attachments, native text, prepared records, and upload
 reports are persisted back to ADLS as they are saved. Indexed provenance keeps
 the ADLS URI, not a temporary driver path. Missing containers, access failures,
@@ -246,8 +254,8 @@ folder, and CU/DI jobs. It reuses existing AI services and ADLS rather than
 recreating them. Public endpoints still require authentication; containers
 are not anonymously readable. No GitHub read credential or PAT is required.
 
-The recurring jobs run notebook **1 -> 3**, pinned to a reviewed public commit;
-run notebook 2 once per new index. You can trigger and inspect them from your
+The jobs run notebook **1 -> 2 -> 3**, pinned to a reviewed public commit,
+starting fresh on every loop. You can trigger and inspect them from your
 computer while execution stays inside Databricks. Participants with existing
 workspace/compute/identity/storage should follow the notebook instructions
 above rather than deploy the instructor's rehearsal infrastructure.
@@ -257,10 +265,9 @@ claims data, and a web client are later architecture stages, not prerequisites
 for this ingestion session.
 
 When changing embedding resources, use a new output root and index for the
-comparison. CU and DI already have separate roots and indexes. The notebooks do not compare manifests or
-inspect an existing index's schema before uploading.
+comparison. CU and DI already have separate roots and indexes. The notebooks do not compare manifests.
 Use distinct index names and output locations for separate runtime rehearsals
-too; switching environments must not unintentionally synchronize another run.
+too; each loop clears its configured demo index.
 
 Customer files, outputs, credentials, and Terraform state are ignored by Git.
 Notebook previews show at most five rows, short text, and vector dimensions.

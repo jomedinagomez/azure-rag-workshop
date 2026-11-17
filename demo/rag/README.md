@@ -94,8 +94,8 @@ consistent across its three notebooks. ADLS URIs work in either environment.
 Cluster-supplied nonsecret settings are preserved. Databricks notebooks 1
 and 3 expose a `CLAIM_FOLDER` widget for interactive selection or a Job
 parameter. The [deployment guide](../../infra/README.md) defines separate
-CU/DI jobs pinned to a public Git commit; they run 1 -> 3 after one-time
-index creation with notebook 2.
+CU/DI jobs pinned to a public Git commit; every loop runs 1 -> 2 -> 3 and
+starts with fresh outputs and index data.
 
 ```text
 <CU_OUTPUT_ROOT>/<claim-id>/
@@ -105,7 +105,6 @@ index creation with notebook 2.
   <document-hash>_figure_<native-figure-id>.md
   processed-evidence-v1.json
   upload-results.json
-  delete-results.json
 ```
 
 DI uses the same artifact pattern under `DI_OUTPUT_ROOT`, adding:
@@ -117,18 +116,17 @@ vision-results/<openai-endpoint-fingerprint>/<deployment>_<request-hash>.json
 ```
 
 DI's native Markdown is still saved as `<document-hash>.md`. Vision request hashes
-include image bytes, prompt, and caption context; their folder and filename
-separate the endpoint and deployment. Use a new output root if the model behind
-an existing deployment changes. PDF analysis uses a `_figures` cache variant so
-an older OCR-only response cannot be mistaken for a run with saved crops.
+identify the image bytes, prompt, and caption context for the saved inspection
+files; their folder and filename separate the endpoint and deployment.
+PDF result filenames include `_figures`. These files are outputs, not caches:
+the services are called again on every extraction run.
 
 Each folder's notebook 3 reads its own `processed-evidence-v1.json` directly. Keep the same embedding
 endpoint, deployment, and dimensions for ingestion and queries. Use a new index
 and output root when changing those settings; there is no manifest validation.
-Cache filenames include analyzer, API version, and document hash. The cache's
-resource fingerprint separates service endpoints.
-Use a new output root if the extraction resource's model configuration changes
-without changing its endpoint.
+Native-result filenames include analyzer, API version, and document hash.
+The resource fingerprint organizes inspection outputs by endpoint; it does not
+control whether a call is made.
 
 The 18 evidence columns are retained from the source walkthrough:
 
@@ -151,12 +149,16 @@ Previews show five rows, at most 160 characters per text value, and vector
 dimensions only. One native Markdown excerpt is limited to 1,200 characters.
 These limits do not truncate the DataFrames, saved content, vectors, or uploads.
 
-Rerunning extraction uses saved native results. Rerunning upload uses saved
-records without repeating extraction or embeddings. Failed upload batches stop
-before stale records can be removed. Stale deletion is limited to the selected
-claim after all new records have been accepted; other claims are untouched.
-Index creation is a direct SDK call: an existing index raises the service's
-error. No index is deleted or updated. Upload and query errors come directly
+Notebook 1 first clears only its generated output folder for the selected claim,
+then repeats extraction, GPT visual analysis for DI, chunking, and embeddings.
+Original input files are never deleted.
+
+Notebook 2 deletes the configured demo index and recreates its schema on every
+run. Notebook 3 also resets that index, then loads every prepared record from
+notebook 1. This removes all previous index documents, including other claims.
+There is no old-ID comparison, incremental synchronization, or stale-row phase.
+Use dedicated demo indexes. Failed upload batches remain failures rather than
+successful-looking output. Upload and query errors come directly
 from the service rather than a separate schema-comparison layer.
 
 The retrieval question is a separate editable cell. Rerunning it and the

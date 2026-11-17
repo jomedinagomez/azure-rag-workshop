@@ -2,7 +2,6 @@ param(
     [string]$AzureConfiguration = "$PSScriptRoot\..\output\deployment\azure-configuration.json",
     [string]$WorkspaceConfiguration = "$PSScriptRoot\..\output\deployment\databricks-configuration.json",
     [string]$ReportDirectory = "$PSScriptRoot\..\output\deployment\runs",
-    [switch]$SkipIndexSetup,
     [ValidateRange(1, 30)][int]$SecretLifetimeDays = 7
 )
 
@@ -143,29 +142,6 @@ try {
     $graph = $null
     $graphRaw = $null
 
-    if (-not $SkipIndexSetup) {
-        foreach ($flow in @('cu', 'di')) {
-            $submitted = Invoke-WorkspaceApi -Method POST -Path '/api/2.2/jobs/runs/submit' -Body @{
-                run_name = "rag-workshop-$flow-index-setup"
-                git_source = @{
-                    git_url = $workspace.repository_url
-                    git_provider = 'gitHub'
-                    git_commit = $workspace.repository_commit
-                }
-                tasks = @(@{
-                    task_key = 'create_index'
-                    existing_cluster_id = $workspace.cluster_id
-                    timeout_seconds = 1200
-                    notebook_task = @{
-                        notebook_path = "demo/rag/notebooks/databricks-runtime/$flow/02_create_index.ipynb"
-                        source = 'GIT'
-                    }
-                })
-            }
-            $completed = Wait-NotebookRun -RunId $submitted.run_id -Caller User -Label "$flow index setup"
-            Write-Host $completed.run_page_url
-        }
-    }
     foreach ($caller in @('User', 'Principal')) {
         $claim = if ($caller -eq 'User') { 'claim-001' } else { 'claim-003' }
         foreach ($flow in @('cu', 'di')) {
