@@ -1,0 +1,6 @@
+resource_group_name  = "<existing-resource-group>"
+storage_account_name = "<existing-adls-gen2-account>"
+container_name       = "rag-workshop-tfstate"
+key                  = "rag-workshop/bootstrap.tfstate"
+subscription_id      = "<subscription-id>"
+use_azuread_auth     = true

@@ -1,0 +1,6 @@
+subscription_id     = "<existing-subscription-id>"
+resource_group_name = "<existing-rehearsal-resource-group>"
+workspace_name      = "dbw-rag-workshop-dev-01"
+storage_account_name = "<existing-adls-gen2-account>"
+foundry_account_name = "<existing-foundry-account>"
+search_service_name  = "<existing-search-service>"
