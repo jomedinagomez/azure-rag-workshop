@@ -70,7 +70,7 @@ resource "databricks_permissions" "compute" {
   }
   access_control {
     service_principal_name = databricks_service_principal.notebooks.application_id
-    permission_level       = "CAN_ATTACH_TO"
+    permission_level       = "CAN_RESTART"
   }
 }
 

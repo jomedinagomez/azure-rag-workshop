@@ -103,6 +103,26 @@ Fresh control-plane propagation can lag ARM completion. If the API remains
 unavailable, diagnose the workspace; do not create credentials or claim that
 compute/jobs are deployed. Do not delete/recreate resources as a workaround.
 
+### If existing Azure automation resets storage settings
+
+The public rehearsal needs the storage endpoint enabled as well as the
+requested resource tag. Where the organization's policy explicitly supports
+`SecurityControl=Ignore` and you are authorized to use it, restore just this
+existing account with Azure CLI:
+
+```powershell
+$storageId = '<existing-storage-account-resource-id>'
+az tag update --resource-id $storageId --operation Merge --tags SecurityControl=Ignore
+az storage account update --ids $storageId --public-network-access Enabled
+```
+
+These commands preserve other tags/settings and do not enable anonymous
+blobs, shared keys, or disable automation/policy. Verify the effective network
+settings before resuming; automation can reset them again until its resource
+configuration is updated. A reset also blocks Terraform's remote state when
+that state uses the same account. Do not hide storage failures or switch to
+account keys to get around them.
+
 ## 3. Databricks workspace configuration
 
 Publish/review the public source first. Record its full commit hash, then:
@@ -127,8 +147,11 @@ Save that output under ignored
 nonsecret environment settings; do not copy the local `.env` wholesale or set
 `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on compute.
 
-The instructor can manage compute/jobs; the SP can attach to compute, read its
-secret scope, and trigger/manage runs. Jobs have a fixed service-principal
+The instructor can manage compute/jobs; the SP can attach to and restart this
+existing cluster, read its secret scope, and trigger/manage runs.
+`CAN_RESTART` is needed for saved jobs to start compute after auto-termination;
+attach-only permission fails when the cluster is stopped.
+Jobs have a fixed service-principal
 **Run as** identity and are pinned to the reviewed Git commit. The Azure SP
 used inside notebooks is the same dedicated identity. No GitHub credential
 is created: the Git source is public.

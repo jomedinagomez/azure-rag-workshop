@@ -14,6 +14,7 @@ $databricksResource = '2ff814a6-3304-4ab8-85cb-cd0e6f879c1d'
 $tokens = @{}
 $clientSecret = $null
 $runs = [System.Collections.Generic.List[object]]::new()
+$jobSettings = @{}
 New-Item -ItemType Directory -Path $ReportDirectory -Force | Out-Null
 
 function Get-WorkspaceToken {
@@ -103,6 +104,7 @@ try {
         if ($job.settings.run_as.service_principal_name -ne $azure.notebook_client_id) {
             throw "$flow job does not have the expected service-principal Run as identity."
         }
+        $jobSettings[$flow] = $job.settings
     }
     $graphRaw = az account get-access-token --resource 'https://graph.microsoft.com' -o json
     if ($LASTEXITCODE -ne 0) { throw 'Could not obtain the application-owner Graph token.' }
@@ -179,10 +181,10 @@ try {
                 claim = $claim
                 caller = $caller
                 run_id = $completed.run_id
-                run_as = $completed.run_as_user_name
+                run_as = $jobSettings[$flow].run_as.service_principal_name
                 result = $completed.state.result_state
                 run_url = $completed.run_page_url
-                git_source = $completed.git_source
+                git_source = $completed.tasks[0].git_source
             })
             $runs.ToArray() | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $ReportDirectory 'rehearsal-runs.json') -Encoding utf8
             Write-Host $completed.run_page_url
