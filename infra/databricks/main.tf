@@ -20,7 +20,6 @@ data "databricks_current_user" "instructor" {}
 
 resource "databricks_service_principal" "notebooks" {
   application_id   = var.notebook_client_id
-  display_name     = "rag-workshop-notebooks"
   workspace_access = true
 }
 

@@ -155,6 +155,8 @@ Jobs have a fixed service-principal
 **Run as** identity and are pinned to the reviewed Git commit. The Azure SP
 used inside notebooks is the same dedicated identity. No GitHub credential
 is created: the Git source is public.
+The Azure-managed principal's display name is supplied by Entra synchronization,
+not overwritten by the workspace template.
 
 The instructor also needs Databricks **Service Principal User** on this
 dedicated principal to set the jobs' Run as identity. Being its creator or
